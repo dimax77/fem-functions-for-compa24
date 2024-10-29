@@ -32,6 +32,12 @@ exports.sendNewEventNotification = functions.firestore
     try {
       const newEvent = snap.data(); // Данные нового события
 
+      // Check if the event is private
+      if (newEvent.isPrivate) {
+        console.log("The event is private. Notification will not be sent.");
+        return; // Exit the function if the event is private
+      }
+
       // Настроим уведомление
       const payload = {
         notification: {
