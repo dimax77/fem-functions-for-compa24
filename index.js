@@ -111,7 +111,7 @@ exports.sendNewMessageNotification = functions.firestore
   .onCreate(async (snap, context) => {
     const newMessage = snap.data();
     const senderId = newMessage.senderId;
-    const receiverId = newMessage.receiverId; // Например, у вас может быть поле receiverId
+    const receiverId = newMessage.receiverId;
 
     // Получаем токен получателя
     const receiverDoc = await admin.firestore().collection('users').doc(receiverId).get();
@@ -123,19 +123,22 @@ exports.sendNewMessageNotification = functions.firestore
       return;
     }
 
-    const conversationId = `${context.params.conversationId}`;
+    const conversationId = `${context.params.dialogId}`;
+    console.log('СonversationId:', conversationId);
+
     const messageId = `${context.params.messageId}`;
     // Подготавливаем уведомление
     const payload = {
       token: fcmToken,
       notification: {
-        title: "Новое сообщение",
-        body: `Сообщение от ${newMessage.senderName}: ${newMessage.body}`
+        title: "New message",
+        body: `Message from ${newMessage.senderName}: ${newMessage.body}`
       },
       data: {
         conversationId: conversationId,
         messageId: messageId,
-        type: "message"
+        type: "message",
+        sender: `${newMessage.senderName}`
       }
     };
 
