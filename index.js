@@ -152,7 +152,7 @@ exports.sendNewMessageNotification = functions.firestore
     }
   });
 
-exports.sendMessageStatusUpdateNotification = functions.firestore
+exports.sendMessageStatusUpdate = functions.firestore
   .document('conversations/{dialogId}/messagesList/{messageId}')
   .onUpdate(async (change, context) => {
     const beforeMessage = change.before.data();
@@ -180,10 +180,6 @@ exports.sendMessageStatusUpdateNotification = functions.firestore
       // Подготавливаем уведомление
       const payload = {
         token: fcmToken,
-        notification: {
-          title: `${afterMessage.receiverId}`,
-          body: `Статус сообщения изменился на: ${afterMessage.status}`
-        },
         data: {
           dialogId: conversationId,
           messageId: messageId,
