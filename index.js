@@ -131,14 +131,15 @@ exports.sendNewMessageNotification = functions.firestore
     const payload = {
       token: fcmToken,
       notification: {
-        title: "New message",
-        body: `Message from ${newMessage.senderName}: ${newMessage.body}`
+        title: `${newMessage.senderName}`,
+        body: `${newMessage.body}`
       },
       data: {
         conversationId: conversationId,
         messageId: messageId,
         type: "message",
-        sender: `${newMessage.senderName}`
+        sender: `${newMessage.senderName}`,
+        senderId: `${senderId}`
       }
     };
 
@@ -150,3 +151,59 @@ exports.sendNewMessageNotification = functions.firestore
       console.error('Ошибка при отправке уведомления:', error);
     }
   });
+
+exports.sendMessageStatusUpdateNotification = functions.firestore
+  .document('conversations/{dialogId}/messagesList/{messageId}')
+  .onUpdate(async (change, context) => {
+    const beforeMessage = change.before.data();
+    const afterMessage = change.after.data();
+
+    // Проверяем, изменился ли статус сообщения
+    if (beforeMessage.status !== afterMessage.status) {
+      const senderId = afterMessage.senderId;
+      const receiverId = afterMessage.receiverId;
+
+      // Получаем токен получателя
+      const senderDoc = await admin.firestore().collection('users').doc(senderId).get();
+      const senderData = senderDoc.data();
+      const fcmToken = senderData.fcmToken;
+
+      if (!fcmToken) {
+        console.log('FCM Token not found for sender:', senderId);
+        return;
+      }
+
+      const conversationId = `${context.params.dialogId}`;
+      console.log('СonversationId:', conversationId);
+
+      const messageId = `${context.params.messageId}`;
+      // Подготавливаем уведомление
+      const payload = {
+        token: fcmToken,
+        notification: {
+          title: `${afterMessage.receiverId}`,
+          body: `Статус сообщения изменился на: ${afterMessage.status}`
+        },
+        data: {
+          dialogId: conversationId,
+          messageId: messageId,
+          type: "messageStatus",
+          sender: `${afterMessage.senderName}`,
+          senderId: `${senderId}`,
+          receiverId: `${receiverId}`,
+          messageStatus: `${afterMessage.status}`,
+          // Добавляем статус сообщения
+          status: afterMessage.status
+        }
+      };
+
+      // Отправляем уведомление на устройство получателя
+      try {
+        await admin.messaging().send(payload);
+        console.log('Уведомление отправлено:', receiverId);
+      } catch (error) {
+        console.error('Ошибка при отправке уведомления:', error);
+      }
+    }
+  });
+
