@@ -119,12 +119,12 @@ exports.sendNewMessageNotification = functions.firestore
     const fcmToken = receiverData.fcmToken;
 
     if (!fcmToken) {
-      console.log('FCM Token not found for receiver:', receiverId);
+      console.log('NewMessage. FCM Token not found for receiver:', receiverId);
       return;
     }
 
     const conversationId = `${context.params.dialogId}`;
-    console.log('СonversationId:', conversationId);
+    console.log('NewMessage. СonversationId:', conversationId);
 
     const messageId = `${context.params.messageId}`;
     // Подготавливаем уведомление
@@ -146,9 +146,9 @@ exports.sendNewMessageNotification = functions.firestore
     // Отправляем уведомление на устройство получателя
     try {
       await admin.messaging().send(payload);
-      console.log('Уведомление отправлено:', receiverId);
+      console.log('NewMessage. Уведомление отправлено:', receiverId);
     } catch (error) {
-      console.error('Ошибка при отправке уведомления:', error);
+      console.error('NewMessage. Ошибка при отправке уведомления:', error);
     }
   });
 
@@ -169,12 +169,12 @@ exports.sendMessageStatusUpdate = functions.firestore
       const fcmToken = senderData.fcmToken;
 
       if (!fcmToken) {
-        console.log('FCM Token not found for sender:', senderId);
+        console.log('MessageStatusUpdate. FCM Token not found for sender:', senderId);
         return;
       }
 
       const conversationId = `${context.params.dialogId}`;
-      console.log('СonversationId:', conversationId);
+      console.log('MessageStatusUpdate. СonversationId:', conversationId);
 
       const messageId = `${context.params.messageId}`;
       // Подготавливаем уведомление
@@ -196,9 +196,9 @@ exports.sendMessageStatusUpdate = functions.firestore
       // Отправляем уведомление на устройство получателя
       try {
         await admin.messaging().send(payload);
-        console.log('Уведомление отправлено:', receiverId);
+        console.log('MessageStatusUpdate. Уведомление отправлено:', receiverId);
       } catch (error) {
-        console.error('Ошибка при отправке уведомления:', error);
+        console.error('MessageStatusUpdate. Ошибка при отправке уведомления:', error);
       }
     }
   });
